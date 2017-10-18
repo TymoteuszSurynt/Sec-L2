@@ -4,9 +4,11 @@
 class Ciphertext {
     private String ciphertext;
     private int parent1, parent2;
+    private int id;
 
-    Ciphertext(String a){
-        ciphertext=a;
+    Ciphertext(String ciphertext, int id){
+        this.ciphertext=ciphertext;
+        this.id=id;
     }
     Ciphertext(String ciphertext,int parent1, int parent2){
         this.ciphertext=ciphertext;
@@ -60,5 +62,9 @@ class Ciphertext {
 
     public int getParent2() {
         return parent2;
+    }
+
+    public int getId() {
+        return id;
     }
 }
