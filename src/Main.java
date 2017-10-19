@@ -10,14 +10,28 @@ public class Main {
     public static void main(String[] args) {
         ArrayList<mCiphertext> ciphertexts = new ArrayList<>();
         ArrayList<mCiphertext> xorCiphertexts = new ArrayList<>();
+        ArrayList<Character> charSet = new ArrayList<>();
+        int size=0;
         PrintWriter saved = openSaved("./K/kSaved.txt");
-        PrintWriter candidate = openSaved("./K/kCandidate.txt");
+        PrintWriter candidateOut = openSaved("./A/kCandidate.txt");
         int option;
         Scanner sc = new Scanner(System.in);
         startLoad(ciphertexts, xorCiphertexts);
-
+        try {
+            loadCharset(charSet);
+        } catch (IOException e) {
+            System.out.println("Cannot import charset");
+            return;
+        }
+        for (mCiphertext ct:ciphertexts) {
+            if(size<ct.getByteRepresentation().size()) {
+                size = ct.getByteRepresentation().size();
+            }
+        }
+        char[] candidate=new char[size];
         while (true) {
-            System.out.println("What now? 1-Xor two ciphertexts 2-Show saved xored ciphers 3-Show saved not xored ciphertexts 4-Xor every cyphertext with all of the others 5-Look for spaces and identical signs 6-Show possible messages 9-Exit");
+            System.out.println("What now? 1-Xor two ciphertexts 2-Show saved xored ciphers 3-Show saved not xored ciphertexts 4-Xor every cyphertext with all of the " +
+                    "others 5-Look for spaces and identical signs 6-Show possible messages 7-Input key 8-Save candidate 9-Exit");
             try {
                 option = Integer.parseInt(sc.nextLine());
             } catch (Exception e) {
@@ -37,10 +51,14 @@ public class Main {
                     System.out.println("Wrong number");
                 }
             } else if (option == 5) {
-                option5(ciphertexts,xorCiphertexts);
+                option5(ciphertexts,xorCiphertexts,charSet);
             } else if(option == 6){
                 option6(ciphertexts,sc);
-            }else if (option == 9) {
+            }else if(option==7){
+                option7(ciphertexts,candidate,sc);
+            }else if(option==8){
+                option8(candidate,sc,candidateOut);
+            }else if(option == 9){
                 if (saved != null) {
                     saved.close();
                 }
@@ -102,19 +120,19 @@ public class Main {
 
     private static void option3(ArrayList<mCiphertext> ciphertexts, Scanner sc) {
         int option, option3;
-        System.out.println("Which? 1-20 ciphertext 21-all");
+        System.out.println("Which? 1-20 Ciphertext 21-all");
         try {
             option3 = Integer.parseInt(sc.nextLine());
             if (option3 == 21) {
                 option = 1;
                 for (mCiphertext ciphertext : ciphertexts) {
-                    System.out.println("mCiphertext " + Integer.toString(option) + "\n");
+                    System.out.println("Ciphertext " + Integer.toString(option) + "\n");
                     System.out.println(ciphertext.getCiphertext() + "\n");
                     option++;
 
                 }
             } else {
-                System.out.println("mCiphertext " + Integer.toString(option3) + "\n");
+                System.out.println("Ciphertext " + Integer.toString(option3) + "\n");
                 System.out.println(ciphertexts.get(option3 - 1).getCiphertext() + "\n");
             }
         } catch (Exception e) {
@@ -143,63 +161,17 @@ public class Main {
         }
     }
 
-    private static void option5(ArrayList<mCiphertext> ciphertexts, ArrayList<mCiphertext> xorCiphertexts) {
+    private static void option5(ArrayList<mCiphertext> ciphertexts, ArrayList<mCiphertext> xorCiphertexts, ArrayList<Character> charset) {
         boolean check;
         try {
             for (mCiphertext ct : ciphertexts) {
                 ArrayList<mCiphertext> list=getXoredWith(ct.getId(),xorCiphertexts);
-                //System.out.println();
-                //System.out.println(ct.getId());
                 for (int w=0;w<ct.getByteRepresentation().size();w++){
-                    //System.out.println(Integer.toString(w)+"/"+Integer.toString(ct.getByteRepresentation().size()));
-                    //System.out.flush();
-                    //System.out.printf(Integer.toString(w)+" ");
-                    for (int j = 65; j < 91; j++){
-                        check=check(list,w,j);
+                    for (char c: charset){
+                        check=check(list,w,c,charset);
                         if(check){
-                            //System.out.println(Integer.toString(w)+" "+Integer.toString(j));
-                            ct.addCandidate(w,j);
+                            ct.addCandidate(w,c);
                         }
-
-                    }
-                    for (int j = 97; j < 123; j++) {
-                        check=check(list,w,j);
-                        if(check){
-                            ct.addCandidate(w,j);
-                        }
-
-                    }
-                    check=check(list,w,' ');
-                    if(check){
-                        ct.addCandidate(w,' ');
-                    }
-                    check=check(list,w,'.');
-                    if(check){
-                        ct.addCandidate(w,'.');
-                    }
-                    check=check(list,w,'!');
-                    if(check){
-                        ct.addCandidate(w,'!');
-                    }
-                    check=check(list,w,'?');
-                    if(check){
-                        ct.addCandidate(w,'?');
-                    }
-                    check=check(list,w,',');
-                    if(check){
-                        ct.addCandidate(w,',');
-                    }
-                    check=check(list,w,':');
-                    if(check){
-                        ct.addCandidate(w,':');
-                    }
-                    check=check(list,w,';');
-                    if(check){
-                        ct.addCandidate(w,';');
-                    }
-                    check=check(list,w,'"');
-                    if(check){
-                        ct.addCandidate(w,'"');
                     }
                 }
             }
@@ -212,28 +184,104 @@ public class Main {
     private static void option6(ArrayList<mCiphertext> ciphertexts, Scanner sc){
         String s;
         System.out.println("1-All 2-Distinct");
-        if((s=sc.nextLine()).equals("1")){
+        if((sc.nextLine()).equals("1")){
             for (mCiphertext ct: ciphertexts) {
-                ct.showCandidates();
+                ct.showCandidatesNoNumbers();
             }
         }else{
             try {
                 System.out.println("Which one?");
                 s=sc.nextLine();
-                ciphertexts.get(Integer.parseInt(s)).showCandidates();
+                ciphertexts.get(Integer.parseInt(s)-1).showCandidatesNoNumbers();
             }catch (Exception e){
                 System.out.println("Wrong number");
             }
         }
     }
-    private static boolean check(ArrayList<mCiphertext> list,int w, int j){
+    private static void option7(ArrayList<mCiphertext> ciphertexts,char[] candidate, Scanner sc){
+        int option,option2;
+        char c;
+        String s;
+        try {
+            System.out.println("Which ciphertext? 1-20");
+            option = Integer.parseInt(sc.nextLine()) - 1;
+            ciphertexts.get(option).showCandidates();
+            System.out.println("One sign or more? 1-One (2+)-More");
+            if(sc.nextLine().equals("1")) {
+                System.out.println("Which position?");
+                option2 = Integer.parseInt(sc.nextLine()) - 1;
+                System.out.println("What sign? ASCII");
+                c = sc.nextLine().charAt(0);
+                addingChars(ciphertexts, option, option2, candidate, c);
+                ciphertexts.get(option).showCandidates();
+            }else{
+                System.out.println("Which position to start?");
+                option2 = Integer.parseInt(sc.nextLine()) - 1;
+                System.out.println("Signs ASCII");
+                s = sc.nextLine();
+                for (int i=0;i<s.length();i++){
+                    addingChars(ciphertexts, option, option2+i, candidate, s.charAt(i));
+                }
+                ciphertexts.get(option).showCandidates();
+
+            }
+            System.out.println("1-Add another char 2-See results (3+)-Go to main menu");
+            option = Integer.parseInt(sc.nextLine());
+            if(option==1){
+                option7(ciphertexts,candidate,sc);
+            }else if (option==2){
+                option6(ciphertexts,sc);
+            }
+        }catch (Exception e){
+            System.out.println("Wrong number");
+        }
+
+    }
+    private static void addingChars(ArrayList<mCiphertext>ciphertexts, int option, int option2, char[]candidate, char c){
+        ciphertexts.get(option).getOriginalMessage().get(option2).clear();
+        ciphertexts.get(option).getOriginalMessage().get(option2).add(c);
+        candidate[option2]=(char)(ciphertexts.get(option).getByteRepresentation().get(option2)^c);
+        for (mCiphertext ct:ciphertexts) {
+            if(ct.getId()!=option+1){
+                ct.getOriginalMessage().get(option2).clear();
+                ct.getOriginalMessage().get(option2).add((char)(ct.getByteRepresentation().get(option2)^candidate[option2]));
+            }
+        }
+    }
+    private static void option8(char[] candidate,Scanner sc, PrintWriter out){
+        for (char aCandidate : candidate) {
+            System.out.printf(String.valueOf((int) aCandidate));
+        }
+        System.out.println("Save? 1-Yes (2+)-No");
+        try {
+            if(sc.nextLine().equals("1")){
+                if(out!=null) {
+                    out.flush();
+                    out.println(candidate);
+                }else{
+                    System.out.println("Error while saving!");
+                }
+            }
+        }catch (Exception e){
+            System.out.println("Wrong number");
+        }
+    }
+    private static boolean check(ArrayList<mCiphertext> list,int w, int j,ArrayList<Character> charset){
         int x;
         for (mCiphertext ct1: list) {
             if(w<ct1.getByteRepresentation().size()) {
                 x = ct1.getByteRepresentation().get(w) ^ j;
-                if ((x < 65 && x!='?' && x!=' ' && x!=',' && x!='.' && x!='!' && x!=':' && x!=';' && x!='"' )|| (x > 90 && x < 97)||(x>122)) {
+                if (check2((char)x,charset)) {
                     return false;
                 }
+            }
+        }
+        return true;
+    }
+    private static boolean check2(char w,ArrayList<Character> charset){
+        for (char c: charset){
+            if(w==c){
+                return false;
             }
         }
         return true;
@@ -290,7 +338,21 @@ public class Main {
             e.printStackTrace();
         }
     }
-
+    private static void loadCharset(ArrayList<Character> charSet) throws IOException {
+        String s;
+        FileReader in1;
+        BufferedReader br1;
+        File file = new File("./ASCII/charset.txt");
+        if(file.exists()){
+            in1 = new FileReader("./ASCII/charset.txt");
+            br1 = new BufferedReader(in1);
+            while ((s=br1.readLine())!=null){
+                for (int i=0;i<s.length();i++){
+                    charSet.add(s.charAt(i));
+                }
+            }
+        }
+    }
     private static ArrayList<mCiphertext> getXoredWith(int id, ArrayList<mCiphertext> xorCiphertexts){
         ArrayList<mCiphertext> list=new ArrayList<>();
         for (mCiphertext ct: xorCiphertexts) {

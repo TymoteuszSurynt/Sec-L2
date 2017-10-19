@@ -7,8 +7,8 @@ class mCiphertext {
     private String ciphertext;
     private int parent1=0, parent2=0;
     private int id=0;
-    private ArrayList<Integer> byteRepresentation;
-    private ArrayList<ArrayList<Integer>> originalMessage;
+    private ArrayList<Character> byteRepresentation;
+    private ArrayList<ArrayList<Character>> originalMessage;
 
     mCiphertext(String ciphertext, int id) {
         this.ciphertext = ciphertext;
@@ -18,7 +18,7 @@ class mCiphertext {
         originalMessage=new ArrayList<>();
         for(int i=0; i<ciphertext.length();i+=9){
             s = ciphertext.substring(i, i + 8);
-            byteRepresentation.add(Integer.parseInt(s,2));
+            byteRepresentation.add((char)Integer.parseInt(s,2));
             originalMessage.add(new ArrayList<>());
         }
     }
@@ -32,7 +32,7 @@ class mCiphertext {
         originalMessage=new ArrayList<>();
         for(int i=0; i<ciphertext.length();i+=9){
             s = ciphertext.substring(i, i + 8);
-            byteRepresentation.add(Integer.parseInt(s,2));
+            byteRepresentation.add((char)Integer.parseInt(s,2));
             originalMessage.add(new ArrayList<>());
         }
     }
@@ -92,25 +92,37 @@ class mCiphertext {
         return id;
     }
 
-    ArrayList<Integer> getByteRepresentation() {
+    ArrayList<Character> getByteRepresentation() {
         return byteRepresentation;
     }
 
-    ArrayList<ArrayList<Integer>> getOriginalMessage() {
+    ArrayList<ArrayList<Character>> getOriginalMessage() {
         return originalMessage;
     }
     void addCandidate(int w, int j){
-        originalMessage.get(w).add(j);
+        originalMessage.get(w).add((char)j);
     }
 
     void showCandidates(){
-        for (ArrayList<Integer> list: originalMessage) {
-            System.out.printf("(");
-            for (int b: list) {
-                System.out.printf((char)b+"");
+        int i=0;
+        for (ArrayList<Character> list: originalMessage) {
+            i++;
+            System.out.printf("(["+Integer.toString(i)+"]");
+            for (char b: list) {
+                System.out.printf(b+"");
             }
             System.out.printf(")");
         }
         System.out.printf("\n");
+    }
+    void showCandidatesNoNumbers(){
+        for (ArrayList<Character> list: originalMessage) {
+            System.out.printf("(");
+            for (char b: list) {
+                System.out.printf(""+b);
+            }
+            System.out.printf(")");
+        }
+        System.out.println("");
     }
 }
