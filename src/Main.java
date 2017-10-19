@@ -117,7 +117,7 @@ public class Main {
     }
     private static PrintWriter openSaved(){
         try{
-            return new PrintWriter(new BufferedWriter(new FileWriter("C:\\Users\\Timmi\\Desktop\\Sec\\SecL1\\K\\kSaved.txt",true)));
+            return new PrintWriter(new BufferedWriter(new FileWriter("../K/kSaved.txt",true)));
         }catch (Exception e){
             System.out.println("File cannot be opened, no work will be saved");
         }
@@ -135,9 +135,9 @@ public class Main {
         int x,y;
         for (int i=0;i<20;i++){
             try {
-                File file = new File ("C:\\Users\\Timmi\\Desktop\\Sec\\SecL1\\K\\k" + Integer.toString(i + 1) + ".txt");
+                File file = new File ("./K/k" + Integer.toString(i + 1) + ".txt");
                 if (file.exists()) {
-                    in = new FileReader("C:\\Users\\Timmi\\Desktop\\Sec\\SecL1\\K\\k" + Integer.toString(i + 1) + ".txt");
+                    in = new FileReader("./K/k" + Integer.toString(i + 1) + ".txt");
                     br = new BufferedReader(in);
                     sb = new StringBuilder();
                     while ((c = br.readLine()) != null) {
@@ -158,14 +158,13 @@ public class Main {
 
         }
         try {
-            File file = new File ("C:\\Users\\Timmi\\Desktop\\Sec\\SecL1\\K\\kSaved.txt");
+            File file = new File ("./K/kSaved.txt");
             if (file.exists()) {
-                in1 = new FileReader("C:\\Users\\Timmi\\Desktop\\Sec\\SecL1\\K\\kSaved.txt");
+                in1 = new FileReader("./K/kSaved.txt");
                 br1 = new BufferedReader(in1);
                 while ((c = br1.readLine()) != null) {
                     x = Integer.parseInt(c.substring(0, c.indexOf(' ')));
                     y = Integer.parseInt(c.substring(c.indexOf(' ') + 1));
-                    sb = new StringBuilder();
                     if ((c = br1.readLine())!= null) {
                         xorCiphertexts.add(new Ciphertext(c,x,y));
                     }
