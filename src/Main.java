@@ -70,7 +70,7 @@ public class Main {
                 break;
             }else if(option == 10){
                 try {
-                    option10(ciphertexts,candidate);
+                    option10(candidate);
                 } catch (IOException e) {
                     System.out.println("Something went wrong!");
                 }
@@ -292,7 +292,7 @@ public class Main {
             System.out.println("Wrong number");
         }
     }
-    private static void option10(ArrayList<mCiphertext> ciphertexts, int[] candidates) throws IOException {
+    private static void option10(int[] candidates) throws IOException {
         System.out.println("This option will only work if u have the whole key!");
         File file=new File("./A/k.txt");
         if(file.exists()){
