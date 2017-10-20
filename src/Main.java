@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -28,7 +29,9 @@ public class Main {
                 size = ct.getByteRepresentation().size();
             }
         }
-        char[] candidate=new char[size];
+        int[] candidate=new int[size];
+        Arrays.fill(candidate,-1);
+        loadCode(candidate);
         while (true) {
             System.out.println("What now? 1-Xor two ciphertexts 2-Show saved xored ciphers 3-Show saved not xored ciphertexts 4-Xor every cyphertext with all of the " +
                     "others 5-Look for spaces and identical signs 6-Show possible messages 7-Input key 8-Save candidate 9-Exit");
@@ -51,7 +54,7 @@ public class Main {
                     System.out.println("Wrong number");
                 }
             } else if (option == 5) {
-                option5(ciphertexts,xorCiphertexts,charSet);
+                option5(ciphertexts,xorCiphertexts,charSet, candidate);
             } else if(option == 6){
                 option6(ciphertexts,sc);
             }else if(option==7){
@@ -62,6 +65,9 @@ public class Main {
                 if (saved != null) {
                     saved.close();
                 }
+                if (candidateOut != null) {
+                    candidateOut.close();
+                }
                 break;
             }
         }
@@ -70,7 +76,13 @@ public class Main {
 
     private static PrintWriter openSaved(String c) {
         try {
-            return new PrintWriter(new BufferedWriter(new FileWriter(c, true)));
+            File file= new File(c);
+            if (file.exists()){
+                return new PrintWriter(new BufferedWriter(new FileWriter(c, true)));
+            }else{
+                System.out.println("Error, save file missing");
+            }
+
         } catch (Exception e) {
             System.out.println("File cannot be opened, no work will be saved");
         }
@@ -148,7 +160,6 @@ public class Main {
                     c = ct.xor(ct1);
                     if (checkIfSaved(xorCiphertexts, ct.getId(), ct1.getId())) {
                         xorCiphertexts.add(new mCiphertext(c, ct.getId(), ct1.getId()));
-                        System.out.println(Integer.toString(ct.getId()) + " " + Integer.toString(ct1.getId()));
                         if (out != null) {
                             out.println(Integer.toString(ct.getId()) + " " + Integer.toString(ct1.getId()));
                             out.flush();
@@ -161,10 +172,11 @@ public class Main {
         }
     }
 
-    private static void option5(ArrayList<mCiphertext> ciphertexts, ArrayList<mCiphertext> xorCiphertexts, ArrayList<Character> charset) {
+    private static void option5(ArrayList<mCiphertext> ciphertexts, ArrayList<mCiphertext> xorCiphertexts, ArrayList<Character> charset,int[] candidates) {
         boolean check;
         try {
             for (mCiphertext ct : ciphertexts) {
+                ct.clearCandidates();
                 ArrayList<mCiphertext> list=getXoredWith(ct.getId(),xorCiphertexts);
                 for (int w=0;w<ct.getByteRepresentation().size();w++){
                     for (char c: charset){
@@ -175,6 +187,7 @@ public class Main {
                     }
                 }
             }
+            decipher(ciphertexts,candidates);
         }catch (Exception e){
             e.getStackTrace();
             System.out.println(Arrays.toString(e.getStackTrace())+"\n\n");
@@ -198,7 +211,7 @@ public class Main {
             }
         }
     }
-    private static void option7(ArrayList<mCiphertext> ciphertexts,char[] candidate, Scanner sc){
+    private static void option7(ArrayList<mCiphertext> ciphertexts,int[] candidate, Scanner sc){
         int option,option2;
         char c;
         String s;
@@ -237,27 +250,35 @@ public class Main {
         }
 
     }
-    private static void addingChars(ArrayList<mCiphertext>ciphertexts, int option, int option2, char[]candidate, char c){
+    private static void addingChars(ArrayList<mCiphertext>ciphertexts, int option, int option2, int[]candidate, char c){
         ciphertexts.get(option).getOriginalMessage().get(option2).clear();
         ciphertexts.get(option).getOriginalMessage().get(option2).add(c);
         candidate[option2]=(char)(ciphertexts.get(option).getByteRepresentation().get(option2)^c);
         for (mCiphertext ct:ciphertexts) {
-            if(ct.getId()!=option+1){
+            if(ct.getId()!=option+1 && option2<ct.getOriginalMessage().size()){
                 ct.getOriginalMessage().get(option2).clear();
                 ct.getOriginalMessage().get(option2).add((char)(ct.getByteRepresentation().get(option2)^candidate[option2]));
             }
         }
     }
-    private static void option8(char[] candidate,Scanner sc, PrintWriter out){
-        for (char aCandidate : candidate) {
-            System.out.printf(String.valueOf((int) aCandidate));
+    private static void option8(int[] candidate,Scanner sc, PrintWriter out){
+        for (int aCandidate : candidate) {
+            if(aCandidate!=-1) {
+                System.out.printf(String.valueOf(aCandidate)+"|");
+            }else{
+                System.out.printf("*|");
+            }
         }
-        System.out.println("Save? 1-Yes (2+)-No");
+        System.out.println("\nSave? 1-Yes (2+)-No");
         try {
             if(sc.nextLine().equals("1")){
                 if(out!=null) {
                     out.flush();
-                    out.println(candidate);
+                    for (int aCandidate : candidate) {
+                        out.printf(Integer.toString( aCandidate+1));
+                        out.printf("|");
+                    }
+                    out.println();
                 }else{
                     System.out.println("Error while saving!");
                 }
@@ -294,6 +315,7 @@ public class Main {
         StringBuilder sb;
         String c;
         int x,y;
+        System.out.printf("[");
         for (int i = 0; i < 20; i++) {
             try {
                 File file = new File("./K/k" + Integer.toString(i + 1) + ".txt");
@@ -305,17 +327,19 @@ public class Main {
                         sb.append(c);
                     }
                     ciphertexts.add(new mCiphertext(sb.toString(), i + 1));
-                    System.out.println("File" + Integer.toString(i + 1) + " loaded");
+                    System.out.printf("*");
                     br.close();
                     in.close();
                 } else {
-                    System.out.println("File" + Integer.toString(i + 1) + " not loaded");
+                    System.out.printf("-");
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         }
+        System.out.println("]");
         try {
             File file = new File("./K/kSaved.txt");
             if (file.exists()) {
@@ -338,6 +362,36 @@ public class Main {
             e.printStackTrace();
         }
     }
+    private static void loadCode(int[] candidate){
+        FileReader in1;
+        BufferedReader br1;
+        String c,s="";
+        int pos,temp,i=0;
+        try {
+            File file = new File("./A/kCandidate.txt");
+            if (file.exists()) {
+                in1 = new FileReader("./A/kCandidate.txt");
+                br1 = new BufferedReader(in1);
+                while ((c = br1.readLine()) != null) {
+                    s=c;
+                }
+                while((pos=s.indexOf('|'))!=-1){
+                    temp=Integer.parseInt(s.substring(0,pos));
+                    candidate[i] =temp-1;
+                    i++;
+                    s=s.substring(pos+1,s.length());
+                }
+
+
+                System.out.println("File kCandidate loaded");
+            } else {
+                System.out.println("File kCandidate not loaded");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     private static void loadCharset(ArrayList<Character> charSet) throws IOException {
         String s;
         FileReader in1;
@@ -351,6 +405,9 @@ public class Main {
                     charSet.add(s.charAt(i));
                 }
             }
+            System.out.println("Charset loaded");
+        }else{
+            System.out.println("Charset not loaded");
         }
     }
     private static ArrayList<mCiphertext> getXoredWith(int id, ArrayList<mCiphertext> xorCiphertexts){
@@ -371,5 +428,18 @@ public class Main {
             }
         }
         return true;
+    }
+    private static void decipher(ArrayList<mCiphertext> ciphertexts, int[] candidates){
+        for (mCiphertext ct: ciphertexts) {
+            for(int i=0;i<candidates.length;i++){
+                if(i>=ct.getOriginalMessage().size()){
+                    break;
+                }
+                if(candidates[i]>-1){
+                    ct.getOriginalMessage().get(i).clear();
+                    ct.getOriginalMessage().get(i).add((char)(ct.getByteRepresentation().get(i)^candidates[i]));
+                }
+            }
+        }
     }
 }

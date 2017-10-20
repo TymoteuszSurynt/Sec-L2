@@ -125,4 +125,9 @@ class mCiphertext {
         }
         System.out.println("");
     }
+    void clearCandidates(){
+        for (ArrayList<Character> c:originalMessage) {
+            c.clear();
+        }
+    }
 }
