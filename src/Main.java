@@ -1,5 +1,4 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -34,7 +33,7 @@ public class Main {
         loadCode(candidate);
         while (true) {
             System.out.println("What now? 1-Xor two ciphertexts 2-Show saved xored ciphers 3-Show saved not xored ciphertexts 4-Xor every cyphertext with all of the " +
-                    "others 5-Look for spaces and identical signs 6-Show possible messages 7-Input key 8-Save candidate 9-Exit");
+                    "others 5-Look for spaces and identical signs 6-Show possible messages 7-Input key 8-Save candidate 9-Exit 10-Read the final message");
             try {
                 option = Integer.parseInt(sc.nextLine());
             } catch (Exception e) {
@@ -69,6 +68,12 @@ public class Main {
                     candidateOut.close();
                 }
                 break;
+            }else if(option == 10){
+                try {
+                    option10(ciphertexts,candidate);
+                } catch (IOException e) {
+                    System.out.println("Something went wrong!");
+                }
             }
         }
 
@@ -285,6 +290,30 @@ public class Main {
             }
         }catch (Exception e){
             System.out.println("Wrong number");
+        }
+    }
+    private static void option10(ArrayList<mCiphertext> ciphertexts, int[] candidates) throws IOException {
+        System.out.println("This option will only work if u have the whole key!");
+        File file=new File("./A/k.txt");
+        if(file.exists()){
+            FileReader in= new FileReader("./A/k.txt");
+            BufferedReader br=new BufferedReader(in);
+            StringBuilder sb = new StringBuilder();
+            String c;
+            while ((c = br.readLine()) != null) {
+                sb.append(c);
+            }
+            mCiphertext ct=new mCiphertext(sb.toString(), 0);
+            System.out.println("Result:");
+            for (int i=0;i<candidates.length;i++){
+                if(i>=ct.getByteRepresentation().size()){
+                    break;
+                }
+                System.out.printf((char)(ct.getByteRepresentation().get(i)^candidates[i])+"");
+            }
+            System.out.println();
+        }else{
+            System.out.println("Option 10 not available");
         }
     }
     private static boolean check(ArrayList<mCiphertext> list,int w, int j,ArrayList<Character> charset){
